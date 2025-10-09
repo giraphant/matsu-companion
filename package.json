@@ -1,0 +1,144 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "matsu",
+  "title": "Matsu",
+  "description": "Monitor your Matsu data and alerts from Raycast",
+  "icon": "icon.png",
+  "author": "giraphant",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "menu-bar",
+      "title": "Menu Bar Monitor",
+      "description": "Display selected monitors in menu bar",
+      "mode": "menu-bar",
+      "interval": "1m",
+      "icon": "icon.png",
+      "preferences": [
+        {
+          "name": "menuBarMonitors",
+          "type": "textfield",
+          "required": false,
+          "title": "Menu Bar Monitors",
+          "description": "Comma-separated monitor IDs to display in menu bar (e.g., monitor1,monitor2)",
+          "placeholder": "monitor1,monitor2,monitor3"
+        },
+        {
+          "name": "menuBarDisplayMode",
+          "type": "dropdown",
+          "required": false,
+          "title": "Display Mode",
+          "description": "How to display monitors in the menu bar",
+          "default": "iconAndValue",
+          "data": [
+            {
+              "title": "Icon Only",
+              "value": "iconOnly"
+            },
+            {
+              "title": "Icon + Value",
+              "value": "iconAndValue"
+            },
+            {
+              "title": "Icon + Name + Value",
+              "value": "iconNameValue"
+            }
+          ]
+        },
+        {
+          "name": "menuBarRefreshInterval",
+          "type": "dropdown",
+          "required": false,
+          "title": "Refresh Interval",
+          "description": "How often to refresh the menu bar",
+          "default": "1m",
+          "data": [
+            {
+              "title": "30 seconds",
+              "value": "30s"
+            },
+            {
+              "title": "1 minute",
+              "value": "1m"
+            },
+            {
+              "title": "5 minutes",
+              "value": "5m"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "list-monitors",
+      "title": "Monitors",
+      "description": "View all monitoring items and their latest values",
+      "mode": "view",
+      "icon": "icon.png"
+    },
+    {
+      "name": "view-alerts",
+      "title": "Alerts",
+      "description": "View active alerts and threshold breaches",
+      "mode": "view",
+      "icon": "icon.png"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "apiUrl",
+      "type": "textfield",
+      "required": true,
+      "title": "API URL",
+      "description": "Your Matsu backend API URL (e.g., http://localhost:8000 or https://your-domain.com)",
+      "default": "http://localhost:8000",
+      "placeholder": "http://localhost:8000"
+    },
+    {
+      "name": "username",
+      "type": "textfield",
+      "required": true,
+      "title": "Username",
+      "description": "Your Matsu username",
+      "placeholder": "admin"
+    },
+    {
+      "name": "password",
+      "type": "password",
+      "required": true,
+      "title": "Password",
+      "description": "Your Matsu password"
+    },
+    {
+      "name": "monitorOrder",
+      "type": "textfield",
+      "required": false,
+      "title": "Custom Monitor Order",
+      "description": "Comma-separated monitor IDs to define custom sort order (e.g., monitor1,monitor2,monitor3). Monitors not listed will appear after in alphabetical order.",
+      "placeholder": "monitor1,monitor2,monitor3"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.65.0",
+    "@raycast/utils": "^1.12.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.8",
+    "@types/node": "20.8.10",
+    "@types/react": "18.2.27",
+    "eslint": "^8.51.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
