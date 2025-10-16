@@ -1,8 +1,8 @@
 import { Action, ActionPanel, Color, Detail, Icon, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { api, MonitorSummary, AlertConfig } from "./api";
-import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji } from "./utils";
-import { useState } from "react";
+import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji, safeFormatDate } from "./utils";
+import React, { useState } from "react";
 
 interface MonitorDetailProps {
   monitor: MonitorSummary;
@@ -56,7 +56,7 @@ ${
 | **Alert Level** | ${getAlertLevelEmoji(alertConfig.alert_level)} ${alertConfig.alert_level.toUpperCase()} |
 | **Upper Threshold** | ${alertConfig.upper_threshold ? formatValue(alertConfig.upper_threshold, monitor.unit) : "Not set"} |
 | **Lower Threshold** | ${alertConfig.lower_threshold ? formatValue(alertConfig.lower_threshold, monitor.unit) : "Not set"} |
-| **Last Updated** | ${new Date(alertConfig.updated_at).toLocaleString()} |
+| **Last Updated** | ${safeFormatDate(alertConfig.updated_at)} |
 `
     : ""
 }
@@ -85,7 +85,7 @@ ${chartData.data
   .slice(-10)
   .reverse()
   .map((point) => {
-    const time = new Date(point.timestamp).toLocaleString();
+    const time = safeFormatDate(point.timestamp);
     const value = formatValue(point.value, monitor.unit);
     return `| ${time} | ${value} | ${point.status} |`;
   })

@@ -1,10 +1,10 @@
 import { Action, ActionPanel, Color, Icon, List, getPreferenceValues, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { api, MonitorSummary, AlertConfig } from "./api";
-import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji } from "./utils";
+import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji, safeFormatDate } from "./utils";
 import MonitorDetail from "./monitor-detail";
 import { getAllAliases, setMonitorAlias, deleteMonitorAlias, getDisplayName, setMonitorTags, deleteMonitorTags, getAllTags } from "./local-aliases";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface Preferences {
   monitorOrder?: string;
@@ -34,10 +34,16 @@ export default function ListMonitors() {
     isLoading: alertsLoading,
     revalidate: revalidateAlerts,
   } = usePromise(async () => {
-    const configs = await api.getAlertConfigs();
-    const alertMap = new Map<string, AlertConfig>();
-    configs.forEach((config) => alertMap.set(config.monitor_id, config));
-    return alertMap;
+    try {
+      const configs = await api.getAlertConfigs();
+      const alertMap = new Map<string, AlertConfig>();
+      configs.forEach((config) => alertMap.set(config.monitor_id, config));
+      return alertMap;
+    } catch (error) {
+      // Alert configs may not be available, return empty map
+      console.warn("Failed to load alert configs:", error);
+      return new Map<string, AlertConfig>();
+    }
   });
 
   const {
@@ -74,13 +80,13 @@ export default function ListMonitors() {
         // If only B is in custom order, it comes first
         if (indexB !== -1) return 1;
         // If neither is in custom order, sort by name
-        const nameA = (a.monitor_name || a.monitor_id).toLowerCase();
-        const nameB = (b.monitor_name || b.monitor_id).toLowerCase();
+        const nameA = (a.monitor_name || a.monitor_id || "").toLowerCase();
+        const nameB = (b.monitor_name || b.monitor_id || "").toLowerCase();
         return nameA.localeCompare(nameB);
       }
       case "name": {
-        const nameA = (a.monitor_name || a.monitor_id).toLowerCase();
-        const nameB = (b.monitor_name || b.monitor_id).toLowerCase();
+        const nameA = (a.monitor_name || a.monitor_id || "").toLowerCase();
+        const nameB = (b.monitor_name || b.monitor_id || "").toLowerCase();
         return nameA.localeCompare(nameB);
       }
       case "value": {
@@ -105,8 +111,8 @@ export default function ListMonitors() {
 
         if (breachedA === breachedB) {
           // If same alert status, sort by name
-          const nameA = (a.monitor_name || a.monitor_id).toLowerCase();
-          const nameB = (b.monitor_name || b.monitor_id).toLowerCase();
+          const nameA = (a.monitor_name || a.monitor_id || "").toLowerCase();
+          const nameB = (b.monitor_name || b.monitor_id || "").toLowerCase();
           return nameA.localeCompare(nameB);
         }
         return breachedA ? -1 : 1; // Alerts first
@@ -197,7 +203,7 @@ ${isBreached ? `🔴 **ALERT TRIGGERED** (${alertConfig.alert_level})` : `🟢 N
             <List.Item.Detail.Metadata.Label title="Last Updated" text={formatTimeSince(monitor.latest_timestamp)} />
             <List.Item.Detail.Metadata.Label
               title="Timestamp"
-              text={new Date(monitor.latest_timestamp + "Z").toLocaleString()}
+              text={safeFormatDate(monitor.latest_timestamp)}
             />
             {monitor.url && (
               <>

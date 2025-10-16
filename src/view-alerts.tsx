@@ -1,10 +1,10 @@
 import { Action, ActionPanel, Color, Icon, List, getPreferenceValues } from "@raycast/api";
 import { usePromise } from "@raycast/utils";
 import { api, MonitorSummary, AlertConfig } from "./api";
-import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji } from "./utils";
+import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji, safeFormatDate } from "./utils";
 import MonitorDetail from "./monitor-detail";
 import { getAllAliases, getDisplayName } from "./local-aliases";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface AlertItem {
   monitor: MonitorSummary;
@@ -39,7 +39,13 @@ export default function ViewAlerts() {
     isLoading: alertsLoading,
     revalidate: revalidateAlerts,
   } = usePromise(async () => {
-    return await api.getAlertConfigs();
+    try {
+      return await api.getAlertConfigs();
+    } catch (error) {
+      // Alert configs may not be available, return empty array
+      console.warn("Failed to load alert configs:", error);
+      return [];
+    }
   });
 
   const {
@@ -86,8 +92,8 @@ export default function ViewAlerts() {
         if (indexB !== -1) return 1;
         // If neither is in custom order, sort by status
         if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
-        const nameA = (a.monitor.monitor_name || a.monitor.monitor_id).toLowerCase();
-        const nameB = (b.monitor.monitor_name || b.monitor.monitor_id).toLowerCase();
+        const nameA = (a.monitor.monitor_name || a.monitor.monitor_id || "").toLowerCase();
+        const nameB = (b.monitor.monitor_name || b.monitor.monitor_id || "").toLowerCase();
         return nameA.localeCompare(nameB);
       }
       case "status": {
@@ -98,8 +104,8 @@ export default function ViewAlerts() {
         return aLevel - bLevel;
       }
       case "name": {
-        const nameA = (a.monitor.monitor_name || a.monitor.monitor_id).toLowerCase();
-        const nameB = (b.monitor.monitor_name || b.monitor.monitor_id).toLowerCase();
+        const nameA = (a.monitor.monitor_name || a.monitor.monitor_id || "").toLowerCase();
+        const nameB = (b.monitor.monitor_name || b.monitor.monitor_id || "").toLowerCase();
         return nameA.localeCompare(nameB);
       }
       case "value": {
@@ -255,10 +261,10 @@ ${thresholdInfo.join("\n")}
             <List.Item.Detail.Metadata.Label title="Last Updated" text={formatTimeSince(monitor.latest_timestamp)} />
             <List.Item.Detail.Metadata.Label
               title="Timestamp"
-              text={new Date(monitor.latest_timestamp + "Z").toLocaleString()}
+              text={safeFormatDate(monitor.latest_timestamp)}
             />
             <List.Item.Detail.Metadata.Separator />
-            <List.Item.Detail.Metadata.Label title="Alert Updated" text={new Date(config.updated_at).toLocaleString()} />
+            <List.Item.Detail.Metadata.Label title="Alert Updated" text={safeFormatDate(config.updated_at)} />
             {monitor.url && (
               <>
                 <List.Item.Detail.Metadata.Separator />

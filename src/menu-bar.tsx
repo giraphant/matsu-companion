@@ -10,7 +10,7 @@ import {
   LaunchType,
 } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { api, MonitorSummary, AlertConfig } from "./api";
 import { formatValue, formatTimeSince, isValueOutOfRange, getAlertLevelEmoji } from "./utils";
 import { getAllAliases, getDisplayName, getAllTags } from "./local-aliases";
@@ -55,7 +55,13 @@ export default function MenuBar() {
     revalidate: revalidateAlerts,
   } = useCachedPromise(
     async () => {
-      return await api.getAlertConfigs();
+      try {
+        return await api.getAlertConfigs();
+      } catch (error) {
+        // Alert configs may not be available, return empty array
+        console.warn("Failed to load alert configs:", error);
+        return [];
+      }
     },
     [],
     {
@@ -102,8 +108,8 @@ export default function MenuBar() {
     if (customOrder.length === 0) {
       // No custom order, sort by name
       return [...items].sort((a, b) => {
-        const nameA = (a.monitor_name || a.monitor_id).toLowerCase();
-        const nameB = (b.monitor_name || b.monitor_id).toLowerCase();
+        const nameA = (a.monitor_name || a.monitor_id || "").toLowerCase();
+        const nameB = (b.monitor_name || b.monitor_id || "").toLowerCase();
         return nameA.localeCompare(nameB);
       });
     }
@@ -121,8 +127,8 @@ export default function MenuBar() {
       // If only B is in custom order, it comes first
       if (indexB !== -1) return 1;
       // If neither is in custom order, sort by name
-      const nameA = (a.monitor_name || a.monitor_id).toLowerCase();
-      const nameB = (b.monitor_name || b.monitor_id).toLowerCase();
+      const nameA = (a.monitor_name || a.monitor_id || "").toLowerCase();
+      const nameB = (b.monitor_name || b.monitor_id || "").toLowerCase();
       return nameA.localeCompare(nameB);
     });
   };

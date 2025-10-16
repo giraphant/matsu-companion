@@ -49,7 +49,7 @@ export function getDisplayName(monitorName: string | null, monitorId: string, lo
   if (localAlias) {
     return localAlias;
   }
-  return monitorName || monitorId;
+  return monitorName || monitorId || "";
 }
 
 // Tag management functions
