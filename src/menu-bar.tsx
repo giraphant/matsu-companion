@@ -46,6 +46,8 @@ export default function MenuBar() {
     [],
     {
       keepPreviousData: true, // Keep showing old data while loading new data
+      initialData: [],
+      execute: true,
     }
   );
 
@@ -66,8 +68,21 @@ export default function MenuBar() {
     [],
     {
       keepPreviousData: true,
+      initialData: [],
+      execute: true,
     }
   );
+
+  // Auto-refresh monitors and alerts every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("Auto-refreshing monitors and alerts...");
+      revalidateMonitors();
+      revalidateAlerts();
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [revalidateMonitors, revalidateAlerts]);
 
   const {
     data: aliases,
